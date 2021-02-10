@@ -71,7 +71,7 @@ class Profile(ViewSet):
     def cart(self, request):
         """Shopping cart manipulation"""
 
-        current_user = Customer.objects.get(user=request.auth.user)
+        current_user = Customer.objects.get(user__id=request.auth.user.id)
 
         if request.method == "DELETE":
             """
