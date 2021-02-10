@@ -7,7 +7,7 @@ from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticatedOrReadOnly
 from rest_framework.response import Response
 from rest_framework.viewsets import ViewSet
-from bangazonapi.models import Order, Customer, Product, OrderProduct, Favorite, payment
+from bangazonapi.models import Order, Customer, Product, OrderProduct, Favorite
 from .product import ProductSerializer
 from .order import OrderSerializer
 
