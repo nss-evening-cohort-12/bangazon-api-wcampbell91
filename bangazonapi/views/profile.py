@@ -7,7 +7,7 @@ from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticatedOrReadOnly
 from rest_framework.response import Response
 from rest_framework.viewsets import ViewSet
-from bangazonapi.models import Order, Customer, Product, OrderProduct, Favorite
+from bangazonapi.models import Order, Customer, Product, OrderProduct, Favorite, payment
 from .product import ProductSerializer
 from .order import OrderSerializer
 
@@ -71,7 +71,7 @@ class Profile(ViewSet):
     def cart(self, request):
         """Shopping cart manipulation"""
 
-        current_user = Customer.objects.get(user__id=request.auth.user.id)
+        current_user = Customer.objects.get(user=request.auth.user)
 
         if request.method == "DELETE":
             """
@@ -207,7 +207,7 @@ class Profile(ViewSet):
             """
 
             try:
-                open_order = Order.objects.get(customer=current_user)
+                open_order = Order.objects.get(customer=current_user, payment_type=None)
                 print(open_order)
             except Order.DoesNotExist as ex:
                 open_order = Order()
