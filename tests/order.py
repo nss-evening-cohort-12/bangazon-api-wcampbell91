@@ -1,7 +1,8 @@
 import json
+from django.db.models.deletion import SET_NULL
 from rest_framework import status
 from rest_framework.test import APITestCase
-
+from bangazonapi.models import ProductCategory, Product, Payment, ProductCategory
 
 class OrderTests(APITestCase):
     def setUp(self) -> None:
@@ -22,9 +23,18 @@ class OrderTests(APITestCase):
         self.client.credentials(HTTP_AUTHORIZATION='Token ' + self.token)
         response = self.client.post(url, data, format='json')
 
+
         # Create a product
         url = "/products"
-        data = { "name": "Kite", "price": 14.99, "quantity": 60, "description": "It flies high", "category_id": 1, "location": "Pittsburgh" }
+        data = { "name": "Kite", "price": 14.99, "quantity": 60, "description": "It flies high", "category_id": 1, "location": "Pittsburgh", "image_path": None}
+        self.client.credentials(HTTP_AUTHORIZATION='Token ' + self.token)
+        response = self.client.post(url, data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+
+
+        # Create a payment
+        url = "/paymenttypes"
+        data = {"merchant_name": "MasterCard", "account_number": "000000000000", "expiration_date": "2023-12-12", "create_date": "2020-12-13"}
         self.client.credentials(HTTP_AUTHORIZATION='Token ' + self.token)
         response = self.client.post(url, data, format='json')
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
@@ -80,5 +90,31 @@ class OrderTests(APITestCase):
         self.assertEqual(len(json_response["lineitems"]), 0)
 
     # TODO: Complete order by adding payment type
+    def test_add_paymenttype_to_order(self):
+
+        #add product to order
+        url = "/profile/cart"
+        data = {"product_id": 1}
+        self.client.credentials(HTTP_AUTHORIZATION="Token " + self.token)
+        response = self.client.post(url, data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+
+        #add paymenttype to finish order
+        url="/orders/1"
+        data = {"payment_type": 1}
+        self.client.credentials(HTTP_AUTHORIZATION='Token ' + self.token)
+        response = self.client.put(url, data, format='json')
+
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+
+        # perform GET to order to verify payment_type added
+        url="/orders/1"
+        self.client.credentials(HTTP_AUTHORIZATION='Token ' + self.token)
+        response = self.client.get(url, None, format='json')
+        json_response = json.loads(response.content)
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        
 
     # TODO: New line item is not added to closed order

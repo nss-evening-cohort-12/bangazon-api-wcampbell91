@@ -98,14 +98,17 @@ class Products(ViewSet):
         new_product.category = product_category
 
         if "image_path" in request.data:
-            format, imgstr = request.data["image_path"].split(';base64,')
-            ext = format.split('/')[-1]
-            data = ContentFile(base64.b64decode(imgstr), name=f'{new_product.id}-{request.data["name"]}.{ext}')
+            if request.data["image_path"] is not None:
+                format, imgstr = request.data["image_path"].split(';base64,')
+                ext = format.split('/')[-1]
+                data = ContentFile(base64.b64decode(imgstr), name=f'{new_product.id}-{request.data["name"]}.{ext}')
 
-            new_product.image_path = data
+                new_product.image_path = data
+            else:
+                new_product.image_path = None
 
         try:
-            new_product.clean_fields()
+            new_product.clean_fields(exclude='image_path')
             new_product.save()
         except ValidationError as ex:
             return Response({"message": ex.args[0]}, status=status.HTTP_400_BAD_REQUEST)
@@ -191,7 +194,7 @@ class Products(ViewSet):
         product.category = product_category
 
         try:
-            product.clean_fields()
+            product.clean_fields(exclude='image_path')
             product.save()
         except ValidationError as ex:
             return Response({"message": ex.args[0]}, status=status.HTTP_400_BAD_REQUEST)
