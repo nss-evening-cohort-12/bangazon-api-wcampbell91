@@ -5,9 +5,10 @@ from django.core.exceptions import ValidationError
 from django.http import HttpResponseServerError
 from rest_framework.viewsets import ViewSet
 from rest_framework.response import Response
+from rest_framework.decorators import action
 from rest_framework import serializers
 from rest_framework import status
-from bangazonapi.models import Product, Customer, ProductCategory
+from bangazonapi.models import Product, Customer, ProductCategory, Like
 from rest_framework.permissions import IsAuthenticatedOrReadOnly
 from rest_framework.parsers import MultiPartParser, FormParser
 
@@ -300,3 +301,55 @@ class Products(ViewSet):
         serializer = ProductSerializer(
             products, many=True, context={'request': request})
         return Response(serializer.data)
+
+    @action(methods=['get', 'post', 'delete'], detail=False)
+    def liked(self, request, pk=None):
+        current_user = Customer.objects.get(user=request.auth.user)
+
+        if request.method == "GET":
+            customer = current_user
+            likes = Like.objects.filter(customer=customer)
+
+            serializer = LikeSerializer(
+                likes, many=True, context={'request': request})
+            return Response(serializer.data)
+
+
+    # @action(methods=['get', 'post', 'delete'], detail=False)
+    # def like(self, request, pk=None):
+        
+    #     current_user = Customer.objects.get(user=request.auth.user)
+
+
+
+
+
+
+class LikedProductSerializer(serializers.HyperlinkedModelSerializer):
+    """JSON serializer for liked products
+
+    arguments: 
+        serializers
+    """
+
+    class Meta:
+        model = Product
+        fields = ('id', 'url', 'name', 'price', 'location')
+        depth = 0
+
+
+
+
+class LikeSerializer(serializers.HyperlinkedModelSerializer):
+    """JSON serializer for likes
+
+    arguments:
+        serializers
+    """
+
+    product = LikedProductSerializer(many=False)
+
+    class Meta:
+        model = Like
+        fields = ('id', 'product')
+        depth = 1
