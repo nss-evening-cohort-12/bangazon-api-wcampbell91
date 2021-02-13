@@ -287,14 +287,14 @@ class Profile(ViewSet):
         if request.method == "POST":
             new_favorite = Favorite()
             new_favorite.customer = Customer.objects.get(user=request.auth.user)
-            new_favorite.seller = Customer.objects.get(user__id=request.data['seller'])
+            new_favorite.seller = Customer.objects.get(favorited_seller__id=request.data['seller'])
 
             new_favorite.save()
 
             serializer = FavoriteSerializer(
                 new_favorite, many=False, context={'request': request})
             return Response(serializer.data, status=status.HTTP_201_CREATED)
-            
+
 
 class LineItemSerializer(serializers.HyperlinkedModelSerializer):
     """JSON serializer for products
