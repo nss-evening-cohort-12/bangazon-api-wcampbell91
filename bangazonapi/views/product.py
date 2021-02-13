@@ -5,9 +5,10 @@ from django.core.exceptions import ValidationError
 from django.http import HttpResponseServerError
 from rest_framework.viewsets import ViewSet
 from rest_framework.response import Response
+from rest_framework.decorators import action
 from rest_framework import serializers
 from rest_framework import status
-from bangazonapi.models import Product, Customer, ProductCategory
+from bangazonapi.models import Product, Customer, ProductCategory, Like
 from rest_framework.permissions import IsAuthenticatedOrReadOnly
 from rest_framework.parsers import MultiPartParser, FormParser
 
@@ -159,6 +160,7 @@ class Products(ViewSet):
             return Response(serializer.data)
         except Exception as ex:
             return HttpResponseServerError(ex)
+        
 
     def update(self, request, pk=None):
         """
@@ -300,3 +302,76 @@ class Products(ViewSet):
         serializer = ProductSerializer(
             products, many=True, context={'request': request})
         return Response(serializer.data)
+
+    @action(methods=['get', 'post', 'delete'], detail=False)
+    def liked(self, request):
+        current_user = Customer.objects.get(user=request.auth.user)
+
+        if request.method == "GET":
+            customer = current_user
+            likes = Like.objects.filter(customer=customer)
+
+            serializer = LikeSerializer(
+                likes, many=True, context={'request': request})
+            return Response(serializer.data)
+    
+    @action(methods=['post', 'delete'], detail=True)
+    def like(self, request, pk=None):
+        
+        current_user = Customer.objects.get(user=request.auth.user)
+
+        if request.method == 'POST':
+            new_like = Like()
+            new_like.customer = current_user
+            new_like.product = Product.objects.get(pk=pk)
+
+            new_like.save()
+
+            serializer = LikeSerializer(
+                new_like, many=False, context={'request': request}
+            )
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+        if request.method == 'DELETE':
+            try:
+                like = Like.objects.get(product=pk)
+                like.delete()
+            except Like.DoesNotExist as ex:
+                return Response({'message': ex.args[0]}, status=status.HTTP_404_NOT_FOUND)
+
+            return Response({}, status=status.HTTP_204_NO_CONTENT)
+
+
+
+
+
+
+
+class LikedProductSerializer(serializers.HyperlinkedModelSerializer):
+    """JSON serializer for liked products
+
+    arguments: 
+        serializers
+    """
+
+    class Meta:
+        model = Product
+        fields = ('id', 'url', 'name', 'price', 'location')
+        depth = 0
+
+
+
+
+class LikeSerializer(serializers.HyperlinkedModelSerializer):
+    """JSON serializer for likes
+
+    arguments:
+        serializers
+    """
+
+    product = LikedProductSerializer(many=False)
+
+    class Meta:
+        model = Like
+        fields = ('id', 'product')
+        depth = 1
