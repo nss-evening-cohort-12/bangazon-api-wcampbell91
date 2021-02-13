@@ -160,6 +160,7 @@ class Products(ViewSet):
             return Response(serializer.data)
         except Exception as ex:
             return HttpResponseServerError(ex)
+        
 
     def update(self, request, pk=None):
         """
@@ -303,7 +304,7 @@ class Products(ViewSet):
         return Response(serializer.data)
 
     @action(methods=['get', 'post', 'delete'], detail=False)
-    def liked(self, request, pk=None):
+    def liked(self, request):
         current_user = Customer.objects.get(user=request.auth.user)
 
         if request.method == "GET":
@@ -313,12 +314,33 @@ class Products(ViewSet):
             serializer = LikeSerializer(
                 likes, many=True, context={'request': request})
             return Response(serializer.data)
-
-
-    # @action(methods=['get', 'post', 'delete'], detail=False)
-    # def like(self, request, pk=None):
+    
+    @action(methods=['post', 'delete'], detail=True)
+    def like(self, request, pk=None):
         
-    #     current_user = Customer.objects.get(user=request.auth.user)
+        current_user = Customer.objects.get(user=request.auth.user)
+
+        if request.method == 'POST':
+            new_like = Like()
+            new_like.customer = current_user
+            new_like.product = Product.objects.get(pk=pk)
+
+            new_like.save()
+
+            serializer = LikeSerializer(
+                new_like, many=False, context={'request': request}
+            )
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+        if request.method == 'DELETE':
+            try:
+                like = Like.objects.get(product=pk)
+                like.delete()
+            except Like.DoesNotExist as ex:
+                return Response({'message': ex.args[0]}, status=status.HTTP_404_NOT_FOUND)
+
+            return Response({}, status=status.HTTP_204_NO_CONTENT)
+
 
 
 
