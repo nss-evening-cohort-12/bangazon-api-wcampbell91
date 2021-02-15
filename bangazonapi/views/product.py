@@ -97,14 +97,13 @@ class Products(ViewSet):
         product_category = ProductCategory.objects.get(pk=request.data["category_id"])
         new_product.category = product_category
 
-        if "image_path" in request.data:
-            if request.data["image_path"] is not None:
+        if "image_path" in request.data and request.data["image_path"] is not None:
                 format, imgstr = request.data["image_path"].split(';base64,')
                 ext = format.split('/')[-1]
                 data = ContentFile(base64.b64decode(imgstr), name=f'{new_product.id}-{request.data["name"]}.{ext}')
 
                 new_product.image_path = data
-            else:
+        else:
                 new_product.image_path = None
 
         try:
