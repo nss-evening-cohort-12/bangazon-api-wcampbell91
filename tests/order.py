@@ -114,7 +114,6 @@ class OrderTests(APITestCase):
         response = self.client.get(url, None, format='json')
         json_response = json.loads(response.content)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        
+        self.assertEqual(response.status_code, status.HTTP_200_OK)        
 
     # TODO: New line item is not added to closed order
