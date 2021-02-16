@@ -8,9 +8,10 @@ from rest_framework.response import Response
 from rest_framework.decorators import action
 from rest_framework import serializers
 from rest_framework import status
-from bangazonapi.models import Product, Customer, ProductCategory, Like
+from bangazonapi.models import Product, Customer, ProductCategory, Like, ProductRating
 from rest_framework.permissions import IsAuthenticatedOrReadOnly
 from rest_framework.parsers import MultiPartParser, FormParser
+from django.contrib.auth.models import User
 
 
 class ProductSerializer(serializers.ModelSerializer):
@@ -343,9 +344,79 @@ class Products(ViewSet):
 
             return Response({}, status=status.HTTP_204_NO_CONTENT)
 
+    @action(methods=['post'], detail=True)
+    def rating(self, request, pk=None):
+        current_user = Customer.objects.get(user=request.auth.user)
+
+        if request.method == 'POST':
+            new_rating = ProductRating()
+            new_rating.rating = request.data['rating']
+
+            product = Product.objects.get(pk=pk)
+            new_rating.product = product
+            new_rating.customer = current_user
+
+            new_rating.save()
+
+            serializer = RatingSerializer(
+                new_rating, many=False, context={'request': request}
+            )
+
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
 
 
 
+
+class ProductRatingSerializer(serializers.HyperlinkedModelSerializer):
+    """JSON Serializer for Product"""
+    class Meta: 
+        model= Product
+        url = serializers.HyperlinkedIdentityField(
+            view_name= 'product',
+            lookup_field= 'id'
+        )
+        fields = ('id', 'name')
+
+
+class UserSerializer(serializers.HyperlinkedModelSerializer):
+    """JSON Serializer for user"""
+    class Meta:
+        model= User
+        url = serializers.HyperlinkedIdentityField(
+            view_name= 'user',
+            lookup_field= 'id'
+        )
+        fields = ('id', 'first_name', 'last_name')
+class RatingCustomerSerializer(serializers.HyperlinkedModelSerializer):
+    """JSON serializer for customer ratings"""
+    user = UserSerializer(many=False)
+    
+    class Meta:
+        model = Customer
+        url = serializers.HyperlinkedIdentityField(
+            view_name='customer',
+            lookup_field='id'
+        )
+        fields = ('id', 'user')
+        depth = 1
+
+
+class RatingSerializer(serializers.HyperlinkedModelSerializer):
+    """JSON serializer for product rating
+
+    Arguments:
+        serializers
+    """
+    customer = RatingCustomerSerializer(many=False)
+    product = ProductRatingSerializer(many=False)
+
+    class Meta: 
+        model = ProductRating
+        url = serializers.HyperlinkedIdentityField(
+            view_name="productrating",
+            lookup_field= 'id'
+        )
+        fields = ('id', 'rating', 'customer', 'product')
 
 
 
