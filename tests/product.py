@@ -96,20 +96,5 @@ class ProductTests(APITestCase):
         self.assertEqual(len(json_response), 3)
 
     # TODO: Delete product
-    def test_delete_product(self):
-        # create Product
-        self.test_create_product()
-
-        # Delete product
-        url = '/products/1'
-        response = self.client.delete(url, None, format="json")
-        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
-
-        # attempt to retrieve deleted product to verify it's gone
-        url = '/products/1'
-        response = self.client.get(url, None, format="json")
-        self.assertEqual(response.status_code, status.HTTP_500_INTERNAL_SERVER_ERROR)
-
-
 
     # TODO: Product can be rated. Assert average rating exists.
