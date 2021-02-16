@@ -22,7 +22,6 @@ class PaymentSerializer(serializers.HyperlinkedModelSerializer):
         fields = ('id', 'url', 'merchant_name', 'account_number',
                   'expiration_date', 'create_date')
 
-
 class Payments(ViewSet):
 
     def create(self, request):
