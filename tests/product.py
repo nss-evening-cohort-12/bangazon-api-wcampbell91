@@ -112,4 +112,4 @@ class ProductTests(APITestCase):
 
 
 
-    # TODO: Product can be rated. Assert average rating exists
+    # TODO: Product can be rated. Assert average rating exists.
