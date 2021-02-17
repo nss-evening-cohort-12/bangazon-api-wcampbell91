@@ -387,6 +387,8 @@ class UserSerializer(serializers.HyperlinkedModelSerializer):
             lookup_field= 'id'
         )
         fields = ('id', 'first_name', 'last_name')
+
+        
 class RatingCustomerSerializer(serializers.HyperlinkedModelSerializer):
     """JSON serializer for customer ratings"""
     user = UserSerializer(many=False)
@@ -419,7 +421,6 @@ class RatingSerializer(serializers.HyperlinkedModelSerializer):
         fields = ('id', 'rating', 'customer', 'product')
 
 
-
 class LikedProductSerializer(serializers.HyperlinkedModelSerializer):
     """JSON serializer for liked products
 
@@ -431,8 +432,6 @@ class LikedProductSerializer(serializers.HyperlinkedModelSerializer):
         model = Product
         fields = ('id', 'url', 'name', 'price', 'location')
         depth = 0
-
-
 
 
 class LikeSerializer(serializers.HyperlinkedModelSerializer):
