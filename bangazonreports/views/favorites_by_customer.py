@@ -24,13 +24,22 @@ def customer_favorites_list(request):
 
             dataset = db_cursor.fetchall()
 
-            favorited_sellers = []
+            favorited_sellers = {}
 
             for row in dataset:
-                customer = Customer()
-                customer.user = r
-            
-            print(favorited_sellers)
+                # Get customer
+                    # write SQL 
+                    # use Django ORM i.e. customer.objects.get()
+                # Get customer favorite_sellers
+                    # write SQL
+                    # use Django ORM i.e. favorite.objects.get()
+                customer = row['Customer_name']
+                
+                if customer in favorited_sellers:
+                    favorited_sellers[customer].append(row['Favorited_seller'])
+                else:
+                    favorited_sellers[customer] = [row['Favorited_seller']]
+
 
             template = 'favorites/favoritedsellers.html'
             context = {
